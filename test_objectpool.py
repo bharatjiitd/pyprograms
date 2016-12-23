@@ -27,41 +27,47 @@ class TestObjectPool(unittest.TestCase):
                     "password": "Rajulj2@"
                 }
         args = ()
-        self.obj_pool = object_pool.ObjectPool(2, 3, True, 30, mysql.connector.connect, *args, **dbconfig)
+        self.obj_pool = object_pool.ObjectPool(2, 3, True, 15, mysql.connector.connect, *args, **dbconfig)
         
     def test_scenario1(self):
         #for i in range(7):
-        mysql_client = MySQLClient(self.obj_pool, 40)
+        mysql_client1 = MySQLClient(self.obj_pool, 20)
         #mysql_client.setName("Thread_{}".format(i))
-        mysql_client.setName("Thread_1")
-        mysql_client.start()
+        mysql_client1.setName("Thread_1")
+        mysql_client1.start()
         
-        mysql_client = MySQLClient(self.obj_pool, 38)
+        mysql_client2 = MySQLClient(self.obj_pool, 18)
         #mysql_client.setName("Thread_{}".format(i))
-        mysql_client.setName("Thread_2")
-        mysql_client.start()
+        mysql_client2.setName("Thread_2")
+        mysql_client2.start()
         
-        mysql_client = MySQLClient(self.obj_pool, 25)
+        mysql_client3 = MySQLClient(self.obj_pool, 10)
         #mysql_client.setName("Thread_{}".format(i))
-        mysql_client.setName("Thread_4")
-        mysql_client.start()
+        mysql_client3.setName("Thread_4")
+        mysql_client3.start()
         
-        mysql_client = MySQLClient(self.obj_pool, 6)
+        mysql_client4 = MySQLClient(self.obj_pool, 4)
         #mysql_client.setName("Thread_{}".format(i))
-        mysql_client.setName("Thread_5")
-        mysql_client.start()
+        mysql_client4.setName("Thread_5")
+        mysql_client4.start()
         
-        time.sleep(10)
-        
+        mysql_client1.join()
+        mysql_client2.join()
+        mysql_client3.join()
+        mysql_client4.join()
+                
         self.assertEqual(self.obj_pool.total_created(), 3, "total created == 3")
 
     def test_scenario2(self):
+        thread_list = []
         for i in range(5):
-            mysql_client = MySQLClient(self.obj_pool, 40)
+            mysql_client = MySQLClient(self.obj_pool, 15)
             mysql_client.setName("Thread_{}".format(i))
             mysql_client.start()
+            thread_list.append(mysql_client)
+
+        map(lambda x: x.join(), thread_list)# mysql_client.join()
             
-        time.sleep(10)
         self.assertEqual(self.obj_pool.total_created(), 3, "total created == 3")
 
 
