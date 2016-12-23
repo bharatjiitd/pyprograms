@@ -19,12 +19,10 @@ class ObjectPool(object):
         with self._write_mutex:
             try:
                 if self._queue.empty() and self._in_use_objs < self._max_size:
-                    print("{} resizing size {} ".format(threading.current_thread(), self._in_use_objs))
                     pooled_obj = self.__create_pooled_obj()                    
                     self._in_use_objs += 1
                     return pooled_obj
                 pooled_obj = self._queue.get(self._should_wait, self._max_wait_time)                
-                print("{} borrow object size {} ".format(threading.current_thread(), self._in_use_objs))
                 return pooled_obj
             except Exception as err:
                 raise err
@@ -32,7 +30,6 @@ class ObjectPool(object):
     def return_obj(self, pooled_obj):
         try:
             self._queue.put(pooled_obj, False)            
-            print("{} returning object size {} ".format(threading.current_thread(), self._in_use_objs))            
         except Exception as err:
             raise err
 
@@ -42,6 +39,12 @@ class ObjectPool(object):
             return pooled_item
         except Exception as error:
             raise error
+        
+    def size(self):
+        return self._queue.qsize()
+    
+    def total_created(self):
+        return self._in_use_objs
 
     def __repr__(self):
         return ("<pool %d: size=%d>" % (id(self), self._in_use_objs))
